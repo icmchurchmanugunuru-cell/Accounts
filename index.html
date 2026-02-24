@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="te" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    
+    <!-- SEO & GOOGLE SEARCH KEYWORDS -->
+    <meta name="google-site-verification" content="oFcdua6fdfc1HBbQ9gqGTAIB-mgNMCF1saFyyufHx-M" />
+    <meta name="description" content="Official Accounts of ICM Church Manugunuru. Church Manugunuru, Manugunuru Church, ICM Church, ICM Church Manugunuru Accounts." />
+    <meta name="keywords" content="Church Manugunuru, Manugunuru Church, icm church, icm church manugunuru, manugunuru village, manugunuru, icm church manugunuru accounts" />
+    
+    <title>ICM Church Manugunuru Accounts</title>
+    
+    <!-- FAVICON -->
+    <link rel="icon" href="https://drive.google.com/thumbnail?id=1UYqySNGlyww8sJcRFA4xLkosdUIu_QAS&sz=w256" type="image/x-icon" />
+    <link rel="shortcut icon" href="https://drive.google.com/thumbnail?id=1UYqySNGlyww8sJcRFA4xLkosdUIu_QAS&sz=w256" type="image/x-icon" />
+    <meta property="og:image" content="https://drive.google.com/thumbnail?id=1UYqySNGlyww8sJcRFA4xLkosdUIu_QAS&sz=w500" />
+
+    <!-- RELIABLE CDNS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.263.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- FIREBASE (Version 8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .select-none { user-select: none; -webkit-user-select: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // --- CONFIGURATION ---
+        const ADMIN_PASSWORD = "admin5566"; 
+        const AUTHORIZED_EMAIL = "yesububirugadda37@gmail.com"; 
+        const LOGO_URL = "https://drive.google.com/thumbnail?id=1UYqySNGlyww8sJcRFA4xLkosdUIu_QAS&sz=w256"; 
+
+        // --- NEW FIREBASE CONFIG ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyC4DnKQgu0PVVA3Od6JZlSU8g-SyhQ-Zcs",
+          authDomain: "icm-church-accounts.firebaseapp.com",
+          projectId: "icm-church-accounts",
+          storageBucket: "icm-church-accounts.firebasestorage.app",
+          messagingSenderId: "306009929571",
+          appId: "1:306009929571:web:d8f341735b6fb785a70556"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // 🛡️ CRASH-PROOF ICON COMPONENT
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const iconHTML = React.useMemo(() => {
+                try {
+                    const pascalName = name.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+                    const iconNode = lucide.icons[pascalName] || lucide.icons[name];
+                    if (iconNode && typeof iconNode.toSvg === 'function') {
+                        return iconNode.toSvg({ class: className, width: size, height: size, 'stroke-width': 2 });
+                    }
+                } catch (e) { return ''; }
+                return '';
+            }, [name, size, className]);
+            return iconHTML ? <span dangerouslySetInnerHTML={{ __html: iconHTML }} style={{ display: 'inline-flex', alignItems: 'center' }} /> : null;
+        };
+
+        // IMAGE COMPRESSION UTILITY
+        const compressImage = (file) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 800;
+                        const scale = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scale;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.6));
+                    };
+                };
+            });
+        };
+
+        // FINANCIAL CHART COMPONENT
+        const FinancialChart = ({ income, expense }) => {
+            const canvasRef = React.useRef(null);
+            const chartInstance = React.useRef(null);
+            React.useEffect(() => {
+                if (canvasRef.current) {
+                    if (chartInstance.current) chartInstance.current.destroy();
+                    const ctx = canvasRef.current.getContext('2d');
+                    if (income === 0 && expense === 0) return;
+                    chartInstance.current = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['ఆదాయం (In)', 'ఖర్చు (Out)'],
+                            datasets: [{ data: [income, expense], backgroundColor: ['#10b981', '#f43f5e'], borderWidth: 0 }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+                    });
+                }
+                return () => chartInstance.current?.destroy();
+            }, [income, expense]);
+            return <div className="h-48 w-48 mx-auto relative"><canvas ref={canvasRef}></canvas></div>;
+        };
+
+        const App = () => {
+            const [user, setUser] = React.useState(null);
+            const [transactions, setTransactions] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+            const [showInputForm, setShowInputForm] = React.useState(false);
+            const [showInfo, setShowInfo] = React.useState(false);
+            const [showChart, setShowChart] = React.useState(false);
+            const [viewImage, setViewImage] = React.useState(null);
+            
+            const [amount, setAmount] = React.useState('');
+            const [desc, setDesc] = React.useState('');
+            const [type, setType] = React.useState('income');
+            const [password, setPassword] = React.useState('');
+            const [billImage, setBillImage] = React.useState('');
+            const [isSubmitting, setIsSubmitting] = React.useState(false);
+            
+            const fileInputRef = React.useRef(null);
+            const pressTimer = React.useRef(null);
+            const [actionItem, setActionItem] = React.useState(null);
+
+            // AUTH & DATA LISTENERS
+            React.useEffect(() => {
+                const unsubscribeAuth = auth.onAuthStateChanged(setUser);
+                const unsubscribeData = db.collection('transactions').orderBy('date', 'desc').onSnapshot(snap => {
+                    setTransactions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+                    setLoading(false);
+                }, (err) => {
+                    if(err.code === 'permission-denied') alert("🛑 Rules locked! Firestore rules మార్చు మామా.");
+                    setLoading(false);
+                });
+                return () => { unsubscribeAuth(); unsubscribeData(); };
+            }, []);
+
+            const totalIncome = transactions.filter(t => t.type === 'income').reduce((a, b) => a + Number(b.amount), 0);
+            const totalExpense = transactions.filter(t => t.type === 'expense').reduce((a, b) => a + Number(b.amount), 0);
+            const balance = totalIncome - totalExpense;
+            const formatINR = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+            const isAdmin = user && user.email.toLowerCase() === AUTHORIZED_EMAIL.toLowerCase();
+
+            const handleSave = async (e) => {
+                e.preventDefault();
+                if (!isAdmin) return alert("Unauthorized!");
+                if (password !== ADMIN_PASSWORD) return alert("🛑 అడ్మిన్ పాస్‌వర్డ్ తప్పు!");
+                setIsSubmitting(true);
+                try {
+                    await db.collection('transactions').add({
+                        amount: Number(amount), description: desc, type, image: billImage,
+                        date: firebase.firestore.FieldValue.serverTimestamp(),
+                        displayDate: new Date().toLocaleDateString('en-GB'),
+                        addedBy: user.email
+                    });
+                    setShowInputForm(false); setAmount(''); setDesc(''); setBillImage(''); setPassword('');
+                    alert("✅ Saved Successfully!");
+                } catch (e) { alert(e.message); }
+                setIsSubmitting(false);
+            };
+
+            const handlePressStart = (t) => {
+                if (!isAdmin) return;
+                pressTimer.current = setTimeout(() => {
+                    if(window.navigator.vibrate) window.navigator.vibrate(200);
+                    const pwd = prompt("Enter Admin Password to manage:");
+                    if (pwd === ADMIN_PASSWORD) setActionItem(t);
+                }, 5000);
+            };
+
+            const deleteEntry = async () => {
+                if(confirm("శాశ్వతంగా డిలీట్ చేయమంటారా?")) {
+                    await db.collection('transactions').doc(actionItem.id).delete();
+                    setActionItem(null);
+                }
+            };
+
+            if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50 font-bold">డేటా లోడ్ అవుతోంది...</div>;
+
+            return (
+                <div className="max-w-md mx-auto bg-slate-50 min-h-screen shadow-xl relative pb-20">
+                    
+                    {/* MODALS: View Bill, Chart, Info, Action */}
+                    {viewImage && (
+                        <div className="fixed inset-0 bg-black z-[100] flex items-center justify-center p-2" onClick={() => setViewImage(null)}>
+                            <img src={viewImage} className="max-w-full max-h-full rounded-lg shadow-2xl" />
+                        </div>
+                    )}
+
+                    {showChart && (
+                        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4" onClick={() => setShowChart(false)}>
+                            <div className="bg-white w-full max-w-sm rounded-3xl p-6 text-center shadow-2xl" onClick={e => e.stopPropagation()}>
+                                <h3 className="text-xl font-bold mb-4">Financial Status</h3>
+                                <FinancialChart income={totalIncome} expense={totalExpense} />
+                                <div className="mt-6 space-y-2">
+                                    <div className="flex justify-between font-bold text-emerald-600"><span>Income:</span><span>{formatINR(totalIncome)}</span></div>
+                                    <div className="flex justify-between font-bold text-rose-600"><span>Expense:</span><span>{formatINR(totalExpense)}</span></div>
+                                </div>
+                                <button onClick={() => setShowChart(false)} className="mt-6 w-full py-2 bg-slate-100 rounded-xl text-sm font-bold text-slate-400">Close</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {showInfo && (
+                        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowInfo(false)}>
+                            <div className="bg-white w-full rounded-2xl p-6 text-center shadow-2xl" onClick={e => e.stopPropagation()}>
+                                <img src={LOGO_URL} className="w-20 h-20 mx-auto rounded-full border-4 border-indigo-100 mb-4" />
+                                <h2 className="text-xl font-bold text-indigo-900 tracking-tight">ICM CHURCH</h2>
+                                <p className="text-xs text-slate-400 mb-6">Manugunuru Village</p>
+                                <div className="space-y-2">
+                                    <div className="bg-indigo-50 p-2 rounded-xl text-sm font-bold text-slate-800"><p className="text-[10px] text-indigo-400 uppercase">సంస్థధ్యక్షులు</p>బిషప్ జాన్ ఎస్ డి రాజు గారు</div>
+                                    <div className="bg-emerald-50 p-2 rounded-xl text-sm font-bold text-slate-800"><p className="text-[10px] text-emerald-400 uppercase">సంఘ కాపరి</p>సాల్మన్ రాజు గారు</div>
+                                    <div className="bg-amber-50 p-3 rounded-xl text-xs font-bold text-slate-700">
+                                        <p className="text-[10px] text-amber-500 uppercase mb-2">సంఘపెద్దలు</p>
+                                        <ul className="space-y-1"><li>జంగం గిద్యోను (బాబీ)</li><li>గొవ్వాడ అబ్రహం</li><li>మత్తే పండు</li><li>మొగనాటి నాని</li><li>మేరుగు శ్యామ్ బాబు</li></ul>
+                                    </div>
+                                </div>
+                                <div className="mt-8 pt-4 border-t">
+                                    {!user ? <button onClick={() => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())} className="text-sm font-bold text-indigo-600 bg-indigo-50 px-8 py-2.5 rounded-full shadow-md">Admin Login</button> :
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] text-slate-400">Logged in: {user.email}</p>
+                                        <button onClick={() => auth.signOut()} className="text-sm font-bold text-rose-600 bg-rose-50 px-8 py-2.5 rounded-full">Logout</button>
+                                    </div>}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {actionItem && (
+                        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onClick={() => setActionItem(null)}>
+                            <div className="bg-white w-full max-w-xs rounded-2xl p-6" onClick={e => e.stopPropagation()}>
+                                <p className="text-center font-bold mb-4">Manage Entry</p>
+                                <button onClick={deleteEntry} className="w-full py-3 bg-rose-50 text-rose-600 rounded-xl font-bold flex items-center justify-center gap-2"><Icon name="trash-2" size={18} /> Delete Entry</button>
+                                <button onClick={() => setActionItem(null)} className="w-full mt-2 py-2 text-slate-400 text-sm">Cancel</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MAIN UI */}
+                    <div className="bg-indigo-700 text-white p-6 rounded-b-[2.5rem] shadow-xl text-center relative">
+                        <div className="flex justify-between items-center mb-6">
+                            <img src={LOGO_URL} className="w-12 h-12 bg-white rounded-xl p-0.5 cursor-pointer shadow-md" onClick={() => setShowInfo(true)} />
+                            <div className="text-right"><h1 className="font-bold text-lg">ICM CHURCH</h1><p className="text-[10px] opacity-60">Finance Ledger</p></div>
+                        </div>
+                        <p className="text-[10px] opacity-60 uppercase font-bold tracking-widest mb-1">Total Savings</p>
+                        <h2 className="text-5xl font-bold mb-6 drop-shadow-md">{formatINR(balance)}</h2>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="glass p-3 rounded-2xl"><p className="text-[10px] text-emerald-300 font-bold uppercase tracking-wide">Income</p><p className="text-lg font-bold">{formatINR(totalIncome)}</p></div>
+                            <div className="glass p-3 rounded-2xl"><p className="text-[10px] text-rose-300 font-bold uppercase tracking-wide">Expense</p><p className="text-lg font-bold">{formatINR(totalExpense)}</p></div>
+                        </div>
+                        <button onClick={() => setShowChart(true)} className="mt-6 text-[10px] bg-white/10 px-6 py-2 rounded-full border border-white/20 font-bold uppercase tracking-widest">View Analysis 📊</button>
+                    </div>
+
+                    {/* ADD DATA BUTTON (RESTRICTED) */}
+                    {isAdmin && !showInputForm && (
+                        <div className="flex justify-center -mt-6">
+                            <button onClick={() => setShowInputForm(true)} className="bg-white text-indigo-700 px-8 py-3 rounded-full shadow-2xl font-bold text-sm border-2 border-indigo-50 hover:scale-105 transition-all">+ Add Data</button>
+                        </div>
+                    )}
+
+                    {/* FORM SECTION */}
+                    {showInputForm && (
+                        <div className="p-4 animate-fade-in">
+                            <div className="bg-white rounded-3xl shadow-2xl p-6 border-2 border-indigo-50">
+                                <div className="flex gap-2 mb-4 bg-slate-100 p-1 rounded-2xl">
+                                    <button onClick={() => setType('income')} className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${type === 'income' ? 'bg-emerald-500 text-white shadow-md' : 'text-slate-400'}`}>INCOME</button>
+                                    <button onClick={() => setType('expense')} className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${type === 'expense' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-400'}`}>EXPENSE</button>
+                                </div>
+                                <form onSubmit={handleSave} className="space-y-4">
+                                    <input type="number" placeholder="Amount (₹)" className="w-full p-4 bg-slate-50 rounded-2xl outline-none border focus:border-indigo-400 font-bold text-lg" value={amount} onChange={e => setAmount(e.target.value)} required />
+                                    <input type="text" placeholder="Description / Person Name" className="w-full p-4 bg-slate-50 rounded-2xl outline-none border focus:border-indigo-400" value={desc} onChange={e => setDesc(e.target.value)} required />
+                                    <div className="flex gap-2">
+                                        <button type="button" onClick={() => fileInputRef.current.click()} className={`flex-1 py-3 rounded-2xl border-2 border-dashed text-xs font-bold transition-all ${billImage ? 'bg-emerald-50 border-emerald-400 text-emerald-600' : 'text-slate-400 border-slate-200'}`}>
+                                            {billImage ? "Bill Added ✅" : "Upload Bill 📷"}
+                                        </button>
+                                        <input type="file" ref={fileInputRef} onChange={async e => setBillImage(await compressImage(e.target.files[0]))} className="hidden" accept="image/*" />
+                                    </div>
+                                    <input type="password" placeholder="Admin Password" className="w-full p-4 bg-indigo-50 rounded-2xl outline-none border-2 border-indigo-100 font-mono text-sm" value={password} onChange={e => setPassword(e.target.value)} required />
+                                    <div className="flex gap-3 pt-2">
+                                        <button type="button" onClick={() => setShowInputForm(false)} className="flex-1 py-4 font-bold text-slate-400">Cancel</button>
+                                        <button className="flex-[2] py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'SAVE DATA'}</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* LIST SECTION */}
+                    <div className="p-4 space-y-3 mt-4">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-2">History</h3>
+                        {transactions.length === 0 && <div className="text-center py-10 opacity-30 italic">No entries yet</div>}
+                        {transactions.map(t => (
+                            <div key={t.id} className="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center border border-slate-100 select-none active:bg-slate-50"
+                                onMouseDown={() => handlePressStart(t)} onMouseUp={() => clearTimeout(pressTimer.current)} onMouseLeave={() => clearTimeout(pressTimer.current)}
+                                onTouchStart={() => handlePressStart(t)} onTouchEnd={() => clearTimeout(pressTimer.current)}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2.5 rounded-full ${t.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                        <Icon name={t.type === 'income' ? 'trending-up' : 'trending-down'} size={18} />
+                                    </div>
+                                    <div><h4 className="font-bold text-slate-800 text-sm leading-tight">{t.description}</h4><p className="text-[10px] text-slate-400 mt-0.5">{t.displayDate}</p></div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {t.image && <button onClick={() => setViewImage(t.image)} className="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition"><Icon name="image" size={14} /></button>}
+                                    <p className={`font-bold text-sm ${t.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>{t.type === 'income' ? '+' : '-'} {formatINR(t.amount)}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="text-center text-slate-300 text-[10px] py-10">Transparent Church Accounting • ICM Manugunuru</div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
